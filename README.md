@@ -9,7 +9,7 @@ This project fetches real-time Tube line status data from the Transport for Lond
    git clone https://github.com/yourusername/tfl-analysis.git
    cd tfl-analysis
    pip install -r requirements.txt
-   python fetch_tfl_data.py
+   python fetch_data.py
 ```sh
 
 
