@@ -1,19 +1,26 @@
 import pandas as pd
 import requests as req
 import random as rng
+import datetime as dt
 
-def get_route(start, end):
+
+def get_route(start: str, end: str, date_time = 'now') -> dict:
+    if not isinstance(date_time, str):
+        raise ValueError('Datetime has to be in str format')
+
     url = f'https://api.tfl.gov.uk/Journey/JourneyResults/{start}/to/{end}'
 
     params = {
         'mode': 'tube',
-        "dateTime": "now",
+        "dateTime": date_time,
         'traffic': 'true',
     }
 
     response = req.get(url, params=params)
 
     if response.status_code != 200:
+        print(f"API Error for {start} to {end} on {date_time}")
+        print(f"Response content: {response.text[:200]}...")
         raise Exception(f"Error: {response.status_code}")
     
     journey_data = response.json()
@@ -49,7 +56,6 @@ def get_route(start, end):
     
     return result
 
-
 def fetch_stop_points():
     url = 'https://api.tfl.gov.uk/StopPoint/Search'
     params = {
@@ -64,17 +70,36 @@ def fetch_stop_points():
     stop_points = data['matches']
     return stop_points
 
-stop_points = fetch_stop_points()
-
 def get_stop_points(stop_points, num_stops=2):
     if len(stop_points) < num_stops:
         raise ValueError('Not enough stops in the stop_points database')
     return rng.sample(stop_points, num_stops)
 
-random_stops = get_stop_points(stop_points)
+def gen_dates(num_days = 30):
+    today = dt.datetime.now()
+    dates = []
 
-start = random_stops[0]['name']
-end = random_stops[1]['name']
+    for i in range(num_days):
+        next_date = today + dt.timedelta(days=i)
+        formatted_date = next_date.strftime('%Y-%m%dT09:00:00')
+        dates.append(formatted_date)
 
-route_info = get_route(start, end)
-print(route_info)
+    return dates
+
+def get_journey_data(n_data = 30):
+    dates = gen_dates(n_data)
+    random_stops = get_stop_points(fetch_stop_points())
+    start = random_stops[0]['name']
+    end = random_stops[1]['name']
+
+    route_data = {}
+    for item in dates:
+        route_data[item] = get_route(start, end, item)
+
+
+    print(route_data)
+
+    df = pd.DataFrame(route_data)
+    print(df)
+
+get_journey_data(2)
