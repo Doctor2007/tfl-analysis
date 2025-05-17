@@ -15,7 +15,7 @@ data = pd.read_csv('data/processed/processed1000.csv', dtype={'Start time': str}
 start_journey = data['start_coordinates']
 end_journey = data['end_coordinates']
 time_journey = data['Start time']
-
+date_journey = data['New Start date']
 
 # little thinking about time complexity
 # tfl api limits requests 500/min
@@ -32,7 +32,7 @@ time_journey = data['Start time']
 
 
 
-def get_tfl_data(origin, destination, date=None, journey_time=None, timeIs='departing', journeyPreference='leasttime', mode='public_transport', max_retries=3):
+def get_tfl_data(origin, destination, journey_date=None, journey_time=None, timeIs='departing', journeyPreference='leasttime', mode='public_transport', max_retries=3):
         url = f'https://api.tfl.gov.uk/Journey/JourneyResults/{origin}/to/{destination}'
 
         if mode =='public_transport':
@@ -40,7 +40,7 @@ def get_tfl_data(origin, destination, date=None, journey_time=None, timeIs='depa
 
         params = {
             'app_key': APP_KEY,
-            'date': date,
+            'date': journey_date,
             'time': journey_time, 
             'timeIs': timeIs, 
             'journeyPreference': journeyPreference,
@@ -56,7 +56,8 @@ def get_tfl_data(origin, destination, date=None, journey_time=None, timeIs='depa
                 time.sleep(rng.uniform(0.05, 0.1))
                 break
             else:
-                print(f'Retry N{retries}')
+                pass
+                # print(f'Retry N{retries}')
             if response.status_code == 429:
                 time.sleep(rng.uniform(1, 5))
             else:
@@ -68,22 +69,18 @@ def get_tfl_data(origin, destination, date=None, journey_time=None, timeIs='depa
             # print(f"API returned error {response.status_code} for {origin} to {destination}")
             # print(f"Request URL: {response.url}")
 
-            print(f'Error {response.status_code}')
+            # print(f'Error {response.status_code}')
             retries += 1
 
             if retries == max_retries:
-                global n_errors
-                n_errors += 1
+                # global n_errors
+                # n_errors += 1
                 return None
         
         if response is None:
             return None
 
         data = response.json()
-
-        if len(data["journeys"]) == 0:
-            print(f"No journeys found for {origin} to {destination}")
-            return None
 
         # if response is very feel
         return data["journeys"][0]["duration"]
@@ -97,7 +94,9 @@ def run_tfl_data(data, start_journey, end_journey):
             origin=start_journey.iloc[i], 
             destination=end_journey.iloc[i], 
             journey_time=time_journey.iloc[i],
+            journey_date=date_journey.iloc[i],
             mode='public_transport'
+
         )
         cycling_duration = get_tfl_data(
             origin=start_journey.iloc[i], 
@@ -117,7 +116,7 @@ def run_tfl_data(data, start_journey, end_journey):
 
     indices = range(len(data)) 
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=desired_cpu_count) as executor:
         duration_values = list(
             executor.map(get_journey_duration, indices)
         )
