@@ -6,7 +6,7 @@ import time
 import random as rng
 
 
-APP_KEY = 'your_api_key'
+API_KEY = 'your_api_key'
 
 n_errors = 0
 
@@ -39,7 +39,7 @@ def get_tfl_data(origin, destination, journey_date=None, journey_time=None, time
             mode = 'bus,overground,tube,coach,dlr,tram,elizabeth-line,replacement-bus'
 
         params = {
-            'app_key': APP_KEY,
+            'app_key': API_KEY,
             'date': journey_date,
             'time': journey_time, 
             'timeIs': timeIs, 
