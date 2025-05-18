@@ -28,6 +28,7 @@ wheels/
 
 
 # Project specific directories and files
+data/processed/
 data/processed/**
 .env
 
