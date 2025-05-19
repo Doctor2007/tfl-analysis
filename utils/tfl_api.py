@@ -1,6 +1,7 @@
 import pandas as pd
 import requests as req
 import os
+import csv
 import concurrent.futures
 import time
 import random as rng
@@ -108,8 +109,9 @@ def run_tfl_data(data, start_journey, end_journey):
         duration_values = list(
             executor.map(get_journey_duration, indices)
         )
-
+        logger.info('Finished API calls')
         df_durations = pd.DataFrame(duration_values)
+        logger.info('Converted to df')
 
     return df_durations
 
@@ -118,7 +120,7 @@ if __name__ == '__main__':
     logger.remove()
     logger.add("logs/tfl_api.log", level="INFO", mode="w")
 
-    API_KEY = 'your_api_key'
+    API_KEY = '090c6690b1b34994aaab734b8fc14cd3'
 
     n_errors = 0
 
@@ -129,20 +131,22 @@ if __name__ == '__main__':
     time_journey = data['Start time']
     date_journey = data['New Start date']
 
-    SAMPLE_SIZE = 10000
-    data_sample = data.head(SAMPLE_SIZE).copy()
+    SAMPLE_SIZE = 100
+    data_sample = data.head(SAMPLE_SIZE).copy().astype(str)
 
+    logger.info("Starting API calls")
     start = time.time()
     travel_times = run_tfl_data(data_sample, start_journey, end_journey)
+    logger.info("Finished API calls")
     end = time.time()
-
     logger.info(f"Total runtime of the program is {end - start} seconds")
-    dataset = pd.concat([data.reset_index(drop=True), travel_times.reset_index(drop=True)], axis=1)
-    
-    logger.success(f"Total runtime of the program is {end - start} seconds")
-    logger.info(f"Processing complete")
-    logger.warning(f'{n_errors} number of errors')
 
-    dataset.to_csv(f'data/processed/api_processed/sample_{SAMPLE_SIZE}.csv')
+    dataset = pd.concat([data.reset_index(drop=True), travel_times.reset_index(drop=True)], axis=1)
+    logger.info(f"Concating complete")
+    start_saving = time.time()
+    dataset.to_feather(f'data/processed/api_processed/sample_{SAMPLE_SIZE}.feather')
+    end_saving = time.time()
+    logger.info(f"Total runtime of the program-saving is {end_saving - start_saving} seconds")
+    logger.warning(f'{n_errors} number of errors')
 
     
