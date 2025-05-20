@@ -1,7 +1,6 @@
 import pandas as pd
 import requests as req
 import os
-import csv
 import concurrent.futures
 import time
 import random as rng
@@ -17,6 +16,16 @@ from loguru import logger
 # def time_complexity(df):
 
 #     pass
+# due to this I'll get a random sample 10%
+
+def get_sample(data, fraction):
+    """
+        data - your dataset from which you want the sample,
+        fraction - percentage of the dataset you want in decimal format (x/100)
+    """
+    data_sample = data.sample(int(len(data) * fraction))
+
+    return data_sample
 
 
 
@@ -120,7 +129,7 @@ if __name__ == '__main__':
     logger.remove()
     logger.add("logs/tfl_api.log", level="INFO", mode="w")
 
-    API_KEY = '090c6690b1b34994aaab734b8fc14cd3'
+    API_KEY = 'your_api_key'
 
     n_errors = 0
 
@@ -131,8 +140,8 @@ if __name__ == '__main__':
     time_journey = data['Start time']
     date_journey = data['New Start date']
 
-    SAMPLE_SIZE = 100
-    data_sample = data.head(SAMPLE_SIZE).copy().astype(str)
+    SAMPLE_SIZE = 0.0001
+    data_sample = get_sample(data=data, fraction=SAMPLE_SIZE)
 
     logger.info("Starting API calls")
     start = time.time()
@@ -144,7 +153,7 @@ if __name__ == '__main__':
     dataset = pd.concat([data.reset_index(drop=True), travel_times.reset_index(drop=True)], axis=1)
     logger.info(f"Concating complete")
     start_saving = time.time()
-    dataset.to_feather(f'data/processed/api_processed/sample_{SAMPLE_SIZE}.feather')
+    dataset.to_parquet(f'data/processed/api_processed/sample_{SAMPLE_SIZE}.parquet')
     end_saving = time.time()
     logger.info(f"Total runtime of the program-saving is {end_saving - start_saving} seconds")
     logger.warning(f'{n_errors} number of errors')
