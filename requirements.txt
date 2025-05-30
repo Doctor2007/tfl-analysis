@@ -3,3 +3,8 @@ pandas
 loguru
 lxml
 pyarrow
+statsmodels
+numpy
+seaborn
+scikit-learn
+matplotlib

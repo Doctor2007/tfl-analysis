@@ -18,16 +18,6 @@ from loguru import logger
 #     pass
 # due to this I'll get a random sample 10%
 
-def get_sample(data, fraction):
-    """
-        data - your dataset from which you want the sample,
-        fraction - percentage of the dataset you want in decimal format (x/100)
-    """
-    data_sample = data.sample(int(len(data) * fraction))
-
-    return data_sample
-
-
 
 
 
@@ -51,8 +41,8 @@ def get_tfl_data(origin, destination, journey_date=None, journey_time=None, time
         while retries <= max_retries:
             response = req.get(url, params=params)
             if response.status_code == 429:
-                logger.info('Sleeping for 5s...')
-                time.sleep(5)
+                logger.info('Sleeping for 10s...')
+                time.sleep(10)
             elif response.status_code == 404:
                 time.sleep(rng.uniform(0.1, 0.5))
                 logger.info('Sleeping for 0.3s...')
@@ -61,7 +51,7 @@ def get_tfl_data(origin, destination, journey_date=None, journey_time=None, time
                 break
             else:
                 logger.info('Sleeping for 4s...')
-                time.sleep(4)
+                time.sleep(10)
             
 
             
@@ -133,26 +123,24 @@ if __name__ == '__main__':
 
     n_errors = 0
 
-    data = pd.read_csv('data/processed/cleaned_data.csv', dtype={'Start time': str}, index_col=False)
+    data = pd.read_csv('data/processed/cleaned_data_sample10.csv', dtype={'Start time': str}, index_col=False)
 
     start_journey = data['start_coordinates']
     end_journey = data['end_coordinates']
     time_journey = data['Start time']
     date_journey = data['New Start date']
 
-    SAMPLE_SIZE = 0.0001
-    data_sample = get_sample(data=data, fraction=SAMPLE_SIZE)
-
     logger.info("Starting API calls")
     start = time.time()
-    travel_times = run_tfl_data(data_sample, start_journey, end_journey)
+    travel_times = run_tfl_data(data, start_journey, end_journey)
     logger.info("Finished API calls")
     end = time.time()
-    logger.info(f"Total runtime of the program is {end - start} seconds")
+    logger.info(f"Total runtime of 6the program is {end - start} seconds")
 
     dataset = pd.concat([data.reset_index(drop=True), travel_times.reset_index(drop=True)], axis=1)
     logger.info(f"Concating complete")
     start_saving = time.time()
+    SAMPLE_SIZE = 10 # %
     dataset.to_parquet(f'data/processed/api_processed/sample_{SAMPLE_SIZE}.parquet')
     end_saving = time.time()
     logger.info(f"Total runtime of the program-saving is {end_saving - start_saving} seconds")
