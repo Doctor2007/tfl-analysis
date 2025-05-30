@@ -1,7 +1,104 @@
-This research is 
+# TfL Cycling Journey Analysis
 
-https://cycling.data.tfl.gov.uk/
-412JourneyDataExtract15Jan2025-31Jan2025.csv
-400JourneyDataExtract15Jul2024-31Jul2024.csv
+## Research Overview
 
-Powered by TFL Open Data
+This research project analyses Transport for London (TfL) cycling data to understand cycling efficiency patterns and factors influencing cyclist behaviour across London's bike-sharing network. By examining journey times, routes, and environmental factors, this research provides insights into urban mobility patterns and cycling infrastructure effectiveness.
+
+## Research Objectives
+
+- To identify factors that influence cycling efficiency in London's bike-sharing scheme
+- To develop predictive models for cyclist behaviour based on time of day, season, and journey characteristics
+- To compare cycling journey durations with alternative public transport options
+- To evaluate how environmental and temporal factors affect cycling patterns
+
+## Data Sources
+
+This research utilises open data from Transport for London:
+- Journey Data Extract (15 Jan 2025 - 31 Jan 2025) [412JourneyDataExtract15Jan2025-31Jan2025.csv]
+- Journey Data Extract (15 Jul 2024 - 31 Jul 2024) [400JourneyDataExtract15Jul2024-31Jul2024.csv]
+
+Data source: [TfL Cycling Data Portal](https://cycling.data.tfl.gov.uk/)
+
+## Methodology
+
+### Data Collection and Processing
+- Automated extraction of journey data from TfL's cycling dataset
+- Integration with TfL Journey Planner API to obtain comparative public transport journey times and theoretical cycling time (how much time should it take to get from point A to point B)
+- Systematic cleaning and transformation of raw data, handling missing values and outliers
+- Feature engineering to derive meaningful variables like cyclist efficiency metrics
+
+### Statistical Modelling Approach
+- **Logistic Regression Analysis**: Employed to predict cyclist efficiency based on multiple independent variables, with observed journey times as the dependent variable
+- **Variable Treatment**: Categorical variables (season, time of day, bike model) transformed using treatment contrasts with reference categories
+- **Cross-Validation**: Train-test split methodology (80/20) to validate model quality and prevent overfitting
+- **Residual Analysis**: Pearson residuals examined through visualisation to assess model fit across different categorical variables
+
+### Comparative Analysis Framework
+- Calculated efficiency metrics comparing actual journey durations against TfL API predictions
+- Assessed the relationship between public transport alternatives and cycling behaviour 
+- Temporal analysis across different times of day and seasons to identify patterns
+
+### Technical Implementation
+- Python statistical libraries (statsmodels, scikit-learn) for model development
+- Asynchronous API calls to process large volumes of journey permutations
+- Parquet file format utilisation for efficient data storage and retrieval
+- Seaborn and Matplotlib visualisation frameworks for statistical interpretation
+
+## Repository Structure
+
+```
+tfl-analysis/
+├── data/
+│   ├── raw/                  # Original TfL cycling data files
+│   ├── processed/            # Processed datasets
+│   │   ├── processed-api/    # Processed datasets by an API
+│   └── result/               # Final result datasets
+├── notebooks/                # Jupyter notebooks for analysis
+│   ├── 1_data_preparation.ipynb
+│   └── 2_cyclists_efficiency_modeling.ipynb
+├── utils/                    # Source code for doing API calls
+├── logs/                     # API logs
+└── README.md
+```
+
+## Installation and Setup
+
+```bash
+# Clone this repository
+git clone https://github.com/yourusername/tfl-analysis.git
+
+# Navigate to the project directory
+cd tfl-analysis
+
+# Install required packages
+pip install -r requirements.txt
+```
+
+## Key Findings
+
+Our analysis revealed that:
+- Cycling efficiency varies significantly by time of day, with morning commutes showing different patterns than evening journeys
+- Seasonal variations influence cycling behaviour, with distinct patterns across summer and winter months
+- Journey distance classification correlates with cycling efficiency metrics
+- The availability of efficient public transport alternatives impacts cycling behaviour
+
+## Dependencies
+
+This project requires the following Python packages:
+- pandas
+- numpy
+- statsmodels
+- scikit-learn
+- seaborn
+- matplotlib
+- pyarrow
+- requests
+
+## Acknowledgements
+### Powered by TfL Open Data. 
+
+This research acknowledges Transport for London for providing comprehensive cycling data that made this analysis possible.
+
+### LIS
+
+Huge thank you to my institution for supporting this research. The London Interdisciplinary School provided invaluable resources and academic guidance throughout this project. I am particularly grateful to the faculty members who offered their expertise and constructive feedback at various stages of the analysis.
