@@ -30,12 +30,5 @@ wheels/
 # Project specific directories and files
 .env
 
-# Exclude large processed datasets by default
-data/processed/*.csv
-data/processed/*.parquet
-data/processed/api_processed/*.csv
-data/processed/api_processed/*.parquet
-
-# But include results and raw data
-!data/raw/**
-!data/result/**
+# Exclude only the specific large file
+# ...
