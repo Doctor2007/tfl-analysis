@@ -30,7 +30,6 @@ Data source: [TfL Cycling Data Portal](https://cycling.data.tfl.gov.uk/)
 ### Statistical Modelling Approach
 - **Logistic Regression Analysis**: Employed to predict cyclist efficiency based on multiple independent variables, with observed journey times as the dependent variable
 - **Variable Treatment**: Categorical variables (season, time of day, bike model) transformed using treatment contrasts with reference categories
-- **Cross-Validation**: Train-test split methodology (80/20) to validate model quality and prevent overfitting
 - **Residual Analysis**: Pearson residuals examined through visualisation to assess model fit across different categorical variables
 
 ### Comparative Analysis Framework

@@ -14,14 +14,14 @@ from loguru import logger
 # 500 // 60 = 8 (8.3) requests per second
 # due to this I'll sample 10% of the data
 # which brings the processing speed to around 6 hours
-# There are definately ways to improve it, but I'm using pretty generous sleep times, so that I don't have to write extra complex error handlaling logic
+# There are definately ways to improve it, but I'm using pretty generous sleep times, so that I don't have to write extra complex error logic
 
 
 def get_tfl_data(origin, destination, journey_date=None, journey_time=None, timeIs='departing', journeyPreference='leasttime', mode='public_transport', max_retries=3):
         """
         ! REQUIRED:
-            origin - start journey point: coordinates (letitude, longitude)
-            destination - end journey point: coordinates (letitude, longitude)
+            origin - start journey point: coordinates (latitude, longitude)
+            destination - end journey point: coordinates (latitude, longitude)
         * RECOMMENDED:
             journey_date - date that journey took place: %Y%m%d
             journey_time - time that journey took place: %H%M
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     logger.remove()
     logger.add("logs/tfl_api.log", level="INFO", mode="w")
 
-    API_KEY = 'your_key'
+    API_KEY = '090c6690b1b34994aaab734b8fc14cd3'
 
     n_errors = 0
 
