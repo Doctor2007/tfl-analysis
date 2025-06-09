@@ -64,7 +64,7 @@ tfl-analysis/
 
 ```bash
 # Clone this repository
-git clone https://github.com/yourusername/tfl-analysis.git
+git clone https://github.com/Doctor2007/tfl-analysis.git
 
 # Navigate to the project directory
 cd tfl-analysis
