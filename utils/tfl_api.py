@@ -147,7 +147,7 @@ if __name__ == '__main__':
     logger.remove()
     logger.add("logs/tfl_api.log", level="INFO", mode="w")
 
-    API_KEY = '090c6690b1b34994aaab734b8fc14cd3'
+    API_KEY = '...'
 
     n_errors = 0
 

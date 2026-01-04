@@ -1,108 +1,115 @@
-# TfL Cycling Journey Analysis
+# Speed vs. Sense: TfL Cycle Hire Route-Choice Analysis
 
-## Research Overview
+This repository contains the code and notebooks used for the project/paper **“Speed vs. Sense: The Hidden Logic of Cyclist Routes”** ([1c_paper_andrii_kolisnyk.pdf](1c_paper_andrii_kolisnyk.pdf)).
 
-This research project analyses Transport for London (TfL) cycling data to understand cycling efficiency patterns and factors influencing cyclist behaviour across London's bike-sharing network. By examining journey times, routes, and environmental factors, this research provides insights into urban mobility patterns and cycling infrastructure effectiveness.
+At a high level, it:
+- Takes **TfL Cycle Hire** trip records (two 2-week windows: winter vs. summer).
+- Converts docking-station identifiers to **lat/long coordinates** using the live station feed.
+- Enriches trips with **TfL Journey Planner API** estimates for:
+	- theoretical cycling time (fastest route)
+	- public-transport time (alternative)
+- Builds a **logistic regression** model to explore which contextual factors are associated with choosing the **fastest** vs. **slower / “scenic/ideal”** route.
 
-## Research Objectives
+## What the repo is (and isn’t)
 
-- To identify factors that influence cycling efficiency in London's bike-sharing scheme
-- To develop predictive models for cyclist behaviour based on time of day, season, and journey characteristics
-- To compare cycling journey durations with alternative public transport options
-- To evaluate how environmental and temporal factors affect cycling patterns
+- This is primarily an **exploratory, reproducible research pipeline**.
+- “Fastest route vs. scenic route” is an **operational definition** derived from time deltas: trips within **+10%** of the API’s theoretical cycling duration are treated as “fastest-route” choices.
+- Because the TfL Journey Planner API does not support historical queries beyond a short window, the notebook maps each historical trip date to the **nearest upcoming date with the same weekday** before calling the API.
 
-## Data Sources
+## Data sources
 
-This research utilises open data from Transport for London:
-- Journey Data Extract (15 Jan 2025 - 31 Jan 2025) [412JourneyDataExtract15Jan2025-31Jan2025.csv]
-- Journey Data Extract (15 Jul 2024 - 31 Jul 2024) [400JourneyDataExtract15Jul2024-31Jul2024.csv]
+- TfL Cycling Data Portal: trip extracts (stored under [data/raw](data/raw))
+	- January (winter): [data/raw/cycling_jan15-31.csv](data/raw/cycling_jan15-31.csv)
+	- July (summer): [data/raw/cycling_jul15-31.csv](data/raw/cycling_jul15-31.csv)
+- Cycle hire station feed (XML): [data/raw/livecyclehireupdates.xml](data/raw/livecyclehireupdates.xml)
+- TfL Journey Planner API (used during enrichment; see [utils/tfl_api.py](utils/tfl_api.py))
 
-Data source: [TfL Cycling Data Portal](https://cycling.data.tfl.gov.uk/)
-
-## Methodology
-
-### Data Collection and Processing
-- Automated extraction of journey data from TfL's cycling dataset
-- Integration with TfL Journey Planner API to obtain comparative public transport journey times and theoretical cycling time (how much time should it take to get from point A to point B)
-- Systematic cleaning and transformation of raw data, handling missing values and outliers
-- Feature engineering to derive meaningful variables like cyclist efficiency metrics
-
-### Statistical Modelling Approach
-- **Logistic Regression Analysis**: Employed to predict cyclist efficiency based on multiple independent variables, with observed journey times as the dependent variable
-- **Variable Treatment**: Categorical variables (season, time of day, bike model) transformed using treatment contrasts with reference categories
-- **Residual Analysis**: Pearson residuals examined through visualisation to assess model fit across different categorical variables
-
-### Comparative Analysis Framework
-- Calculated efficiency metrics comparing actual journey durations against TfL API predictions
-- Assessed the relationship between public transport alternatives and cycling behaviour 
-- Temporal analysis across different times of day and seasons to identify patterns
-
-### Technical Implementation
-- Python statistical libraries (statsmodels, scikit-learn) for model development
-- Asynchronous API calls to process large volumes of journey permutations
-- Parquet file format utilisation for efficient data storage and retrieval
-- Seaborn and Matplotlib visualisation frameworks for statistical interpretation
-
-## Repository Structure
+## Repository layout
 
 ```
 tfl-analysis/
-├── data/
-│   ├── raw/                  # Original TfL cycling data files
-│   ├── processed/            # Processed datasets
-│   │   ├── processed-api/    # Processed datasets by an API
-│   └── result/               # Final result datasets
-├── notebooks/                # Jupyter notebooks for analysis
-│   ├── 1_data_preparation.ipynb
-│   └── 2_cyclists_efficiency_modeling.ipynb
-├── utils/                    # Source code for doing API calls
-├── logs/                     # API logs
-└── README.md
+	1c_paper_andrii_kolisnyk.pdf
+	notebooks/
+		1_bike_data_extraction.ipynb
+		2_cyclists_efficiency_modeling.ipynb
+	utils/
+		tfl_api.py
+	data/
+		raw/                         # input CSVs + station XML
+		processed/
+			cleaned_data_sample10.csv  # stratified 10% sample (from notebook 1)
+			api_processed/
+				sample_10.parquet        # API-enriched dataset (from utils/tfl_api.py)
+		result/                      # optional exports (see notebook 2)
+	logs/
+		tfl_api.log                  # API call logs (when running utils/tfl_api.py)
 ```
 
-## Installation and Setup
+## Quick start
+
+### 1) Create env + install dependencies
 
 ```bash
-# Clone this repository
-git clone https://github.com/Doctor2007/tfl-analysis.git
-
-# Navigate to the project directory
-cd tfl-analysis
-
-# Install required packages
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Key Findings
+### 2) Build the cleaned stratified sample (Notebook 1)
 
-Our analysis revealed that:
-- Cycling efficiency varies significantly by time of day, with morning commutes showing different patterns than evening journeys
-- Seasonal variations influence cycling behaviour, with distinct patterns across summer and winter months
-- Journey distance classification correlates with cycling efficiency metrics
-- The availability of efficient public transport alternatives impacts cycling behaviour
+Open and run: [notebooks/1_bike_data_extraction.ipynb](notebooks/1_bike_data_extraction.ipynb)
 
-## Dependencies
+This notebook:
+- loads the two raw CSV extracts
+- removes trips with the same start/end station
+- creates API-compatible date/time fields
+- joins station coordinates from the XML feed
+- writes a stratified sample to: [data/processed/cleaned_data_sample10.csv](data/processed/cleaned_data_sample10.csv)
 
-This project requires the following Python packages:
-- pandas
-- numpy
-- statsmodels
-- scikit-learn
-- seaborn
-- matplotlib
-- pyarrow
-- requests
+### 3) Enrich the sample using TfL Journey Planner API
+
+Run the API script:
+
+```bash
+python utils/tfl_api.py
+```
+
+It reads [data/processed/cleaned_data_sample10.csv](data/processed/cleaned_data_sample10.csv) and writes:
+- [data/processed/api_processed/sample_10.parquet](data/processed/api_processed/sample_10.parquet)
+
+Notes:
+- The API has rate limits (the code includes sleeps/retries and logs to [logs/tfl_api.log](logs/tfl_api.log)).
+- The script currently embeds an API key; if you fork this, you should replace it with your own key.
+
+### 4) Fit the logistic regression + generate diagnostics (Notebook 2)
+
+Open and run: [notebooks/2_cyclists_efficiency_modeling.ipynb](notebooks/2_cyclists_efficiency_modeling.ipynb)
+
+This notebook:
+- loads the API-enriched parquet
+- engineers variables used in the paper (time-of-day class, distance class, deltas)
+- fits a logistic regression with treatment-coded categorical variables
+- produces odds ratios + residual plots
+- includes optional exports to [data/result](data/result)
+
+## Model definition (as implemented)
+
+- Dependent variable: `cyclist_class` (binary)
+	- `1` if `(real_duration - cycling_api_duration) / real_duration < 0.1`
+	- else `0`
+- Key predictor: `cycling_public_delta_pct` (cycling vs public transport)
+- Controls (categorical): `type_of_day`, `time_class`, `season`, `distance_class`, `bike_model`
+
+## Paper
+
+For methodology rationale, assumptions, limitations, and findings, see:
+- [1c_paper_andrii_kolisnyk.pdf](1c_paper_andrii_kolisnyk.pdf)
+
+## Support
+
+If this repository or paper helped you, please consider **starring the repo**. It helps others find it and supports continued work.
 
 ## Acknowledgements
-### Powered by TfL Open Data. 
 
-This research acknowledges Transport for London for providing comprehensive cycling data that made this analysis possible.
+Powered by **TfL Open Data**.
 
-### LIS
-
-Huge thank you to my institution for supporting this research. The London Interdisciplinary School provided invaluable resources and academic guidance throughout this project. I am particularly grateful to the faculty members who offered their expertise and constructive feedback at various stages of the analysis.
-
-
-#### Ethics
-
-This README is generated by AI
